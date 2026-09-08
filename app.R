@@ -14,21 +14,38 @@ load('movies.RData')
 # Define UI
 ui = page_sidebar(
   sidebar = sidebar(
-    # Select a variable for y-axis
-    selectInput(
-      inputId = 'x',
-      label = 'X-axis:',
-      choices = c('imdb_rating', 'imdb_num_votes', 'critics_score', 
-                  'audience_score', 'runtime'),
-      selected = 'critics_score'
-    ),
     # Select a variable for x-axis
-    selectInput(
-      inputId = 'y',
-      label = 'Y-axis:',
-      choices = c('imdb_rating', 'imdb_num_votes', 'critics_score', 
-                  'audience_score', 'runtime'),
-      selected = 'imdb_rating'
+    selectInput(inputId = 'x',
+                label = 'X-axis:',
+                choices = c(
+                  'IMDB Rating' = 'imdb_rating', 
+                  'IMDB Number of Votes' = 'imdb_num_votes', 
+                  'Critics Score' = 'critics_score', 
+                  'Audience Score' = 'audience_score', 
+                  'Runtime' = 'runtime'),
+                selected = 'critics_score'
+    ),
+    # Select a variable for y-axis
+    selectInput(inputId = 'y',
+                label = 'Y-axis:',
+                choices = c(
+                  'IMDB Rating' = 'imdb_rating', 
+                  'IMDB Number of Votes' = 'imdb_num_votes', 
+                  'Critics Score' = 'critics_score', 
+                  'Audience Score' = 'audience_score', 
+                  'Runtime' = 'runtime'),
+                selected = 'audience_score'
+    ),
+    # Select a variable to color points
+    selectInput(inputId = 'z',
+                label = 'Color',
+                choices = c(
+                  'Title Type' = 'title_type', 
+                  'Genre' = 'genre', 
+                  'MPAA Rating' = 'mpaa_rating', 
+                  'Critics Rating' = 'critics_rating', 
+                  'Audience Rating' = 'audience_rating'),
+                selected = 'mpaa_rating'
     )
   ),
   # Output: Show scatterplot
@@ -38,7 +55,7 @@ ui = page_sidebar(
 # Define server
 server = function(input, output, session) {
   output$scatterplot = renderPlot({
-    ggplot(data = movies, aes_string(x = input$x, y = input$y)) +
+    ggplot(data = movies, aes_string(x = input$x, y = input$y, color = input$z)) +
       geom_point()
   })
 }

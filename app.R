@@ -81,18 +81,16 @@ library(ggplot2)
 
 # FIXING THE APP - https://shiny.posit.co/r/getstarted/build-an-app/hello-shiny/server-function.html
 # Load packages ----------------------------------------------------------------
-
 library(shiny)
 library(bslib)
 library(ggplot2)
 
 # Load data --------------------------------------------------------------------
-
 load("movies.RData")
 
 # Define UI --------------------------------------------------------------------
-
-ui <- page_sidebar(
+ui = page_sidebar(
+  title = 'IMDB Movies',
   sidebar = sidebar(
     # Select variable for y-axis
     selectInput(
@@ -134,25 +132,33 @@ ui <- page_sidebar(
         "Audience rating" = "audience_rating"
       ),
       selected = "mpaa_rating"
-    )
+    ),
+    # Set alpha value
+    sliderInput(inputId = 'slider',
+                label = 'Alpha:',
+                min = 0.0, max = 1.0,
+                value = 0.5)
   ),
   
   # Output: Show scatterplot
-  card(plotOutput(outputId = "scatterPlot"))
+  card(
+    plotOutput(outputId = 'scatterplot'),
+    plotOutput(outputId = 'densityplot')
+  )
 )
 
 # Define server ----------------------------------------------------------------
-
-server <- function(input, output, session) {
-  output$scatterPlot <- renderPlot({ # scatterPlot instead of scatterplot
-    
+server = function(input, output, session) {
+  output$scatterplot = renderPlot({ # scatterPlot instead of scatterplot
     ggplot(data = movies, aes_string(x = input$x, y = input$y, color = input$z)) + # NEED TO PREFIX x, y, and z WITH 'input$'
-      geom_point()
-    
+      geom_point(alpha = input$slider)
   })
   
+  output$densityplot = renderPlot({
+    ggplot(data = movies, aes_string(x = input$x)) + 
+      geom_density()
+  })
 }
 
 # Create a Shiny app object ----------------------------------------------------
-
 shinyApp(ui = ui, server = server)

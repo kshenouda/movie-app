@@ -6,12 +6,16 @@ library(dplyr)
 library(DT)
 
 # Load data --------------------------------------------------------------------
+# setwd("~/Desktop/COMPSCI/R/movie-app")
 load("movies.RData")
 # Calculate total number of movies in dataset
 n_total = nrow(movies)
 # Calculate min and max dates
 min_date = min(movies$thtr_rel_date)
 max_date = max(movies$thtr_rel_date)
+# Calculate ratio of critics and audience scores
+movies = movies %>%
+  mutate(score_ratio = audience_score / critics_score)
 
 # Define UI --------------------------------------------------------------------
 ui = page_sidebar(
@@ -78,7 +82,12 @@ ui = page_sidebar(
     numericInput(inputId = 'n',
                  label = 'Select number of movies',
                  min = 1, max = n_total,
-                 value = 30)
+                 value = 30),
+    # Subset for title types
+    checkboxGroupInput(inputId = 'selected_title_type',
+                       label = 'Select title type: ',
+                       choices = levels(movies$title_type),
+                       selected = levels(movies$title_type))
   ),
   
   # Output: Show scatterplot
@@ -87,7 +96,9 @@ ui = page_sidebar(
     plotOutput(outputId = 'scatterplot'),
     # Show density plot
     # plotOutput(outputId = 'densityplot')
-    dataTableOutput(outputId = 'movies_table')
+    dataTableOutput(outputId = 'movies_table'),
+    # Show data table
+    tableOutput(outputId = 'summary_table')
   )
 )
 
@@ -130,6 +141,21 @@ server = function(input, output, session) {
   #                options = list(pageLength = 10),
   #                rownames = FALSE)
   #})
+  
+  output$summary_table = renderTable(
+    {
+      movies %>%
+        filter(title_type %in% input$selected_title_type) %>%
+        group_by(mpaa_rating) %>%
+        summarize(mean_score_ratio = mean(score_ratio), SD = sd(score_ratio), n = n())
+    },
+    striped = TRUE, # alternating color rows
+    spacing = 'l',  # larger row heights
+    align = 'lccr', # left, right, or center alignment of columns
+    digits = 4,     # number of decimal places to display
+    width = '90%',  # width of the table
+    caption = 'Score ratio (audience / critic score) summary statistics by MPAA rating'
+  )
 }
 
 # Create a Shiny app object ----------------------------------------------------
